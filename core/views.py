@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView
 from core.serializers import EventListSerializer
 from core.models import Event
+from core.pagination import ListEventPagination
 
 class HealthView(APIView):
     # renderer_classes = [JSONRenderer]
@@ -13,5 +14,13 @@ class HealthView(APIView):
 
 
 class EventGetListView(ListAPIView):
-    queryset = Event.objects.select_related('place')
     serializer_class = EventListSerializer
+    pagination_class = ListEventPagination
+
+    def get_queryset(self):
+        queryset = Event.objects.select_related('place')
+        date_from = self.request.query_params.get('date_from')
+        if date_from:
+            queryset = queryset.filter(event_time__date__gte=date_from)
+        queryset = queryset.order_by('-event_time')
+        return queryset
