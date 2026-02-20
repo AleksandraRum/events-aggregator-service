@@ -5,7 +5,7 @@ RUN addgroup --system --gid 1000 appuser && \
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install gcc libpq-dev -y --no-install-recommends \
+RUN apt-get update && apt-get install gcc libpq-dev bash -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /app/
