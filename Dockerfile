@@ -16,4 +16,4 @@ COPY --chown=appuser:appuser . /app
 
 USER appuser
 
-CMD ["bash", "-c", "gunicorn src.wsgi:application --bind 0.0.0.0:${PORT:-8000}"]
+CMD ["bash", "./run.sh"]
