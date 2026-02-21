@@ -1,8 +1,8 @@
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView
-from core.serializers import EventListSerializer
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from core.serializers import EventListSerializer, EventDetailSerializer
 from core.models import Event
 from core.pagination import ListEventPagination
 
@@ -24,3 +24,9 @@ class EventGetListView(ListAPIView):
             queryset = queryset.filter(event_time__date__gte=date_from)
         queryset = queryset.order_by('-event_time')
         return queryset
+
+
+class EventDetailView(RetrieveAPIView):
+    serializer_class = EventDetailSerializer
+    queryset = Event.objects.select_related('place')
+    lookup_url_kwarg = 'event_id'

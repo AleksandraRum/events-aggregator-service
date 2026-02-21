@@ -13,3 +13,16 @@ class EventListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = ['id', 'name', 'place', 'event_time', 'registration_deadline', 'status', 'number_of_visitors']
+
+
+class PlaceDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Place
+        fields = ['id', 'name', 'city', 'address', 'seats_pattern']
+
+
+class EventDetailSerializer(serializers.ModelSerializer):
+    place = PlaceDetailSerializer()
+    class Meta:
+        model = Event
+        fields = ['id', 'name', 'place', 'event_time', 'registration_deadline', 'status', 'number_of_visitors']
