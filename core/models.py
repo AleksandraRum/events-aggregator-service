@@ -23,3 +23,17 @@ class Event(models.Model):
     changed_at = models.DateTimeField()
     created_at = models.DateTimeField()
     status_changed_at = models.DateTimeField(null=True, blank=True)
+
+
+
+class SyncState(models.Model):
+
+    class StatusChoices(models.TextChoices):
+        FAILED = "failed", "Failed"
+        SUCCESS = "success", "Success"
+        RUNNING = "running", "Running"
+
+    
+    last_changed_at = models.DateTimeField(null=True, blank=True)
+    last_sync_time = models.DateTimeField(null=True, blank=True)
+    sync_status = models.CharField(choices=StatusChoices.choices, max_length=20, default=StatusChoices.SUCCESS)

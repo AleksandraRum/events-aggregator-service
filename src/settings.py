@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from celery.schedules import crontab
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -133,6 +134,28 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
 USE_TZ = True
+
+CELERY_TIMEZONE = "Europe/Moscow"
+CELERY_ENABLE_UTC = False
+CELERY_BEAT_SCHEDULE_FILENAME = "/tmp/celerybeat-schedule"
+
+CELERY_BEAT_SCHEDULE = {
+    "sync-events-daily": {
+        "task": "core.celery_task.sync_events_task",
+        "schedule": crontab(hour=3, minute=0),
+    },
+}
+
+CELERY_BROKER_URL = f"sqla+{os.getenv('POSTGRES_CONNECTION_STRING')}"
+# CELERY_RESULT_BACKEND = f"db+{os.environ['POSTGRES_CONNECTION_STRING']}"
+CELERY_RESULT_BACKEND = None
+# db = DATABASES["default"]
+
+# PG_URL = f"postgresql://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+
+# CELERY_BROKER_URL = f"sqla+{PG_URL}"    
+# CELERY_RESULT_BACKEND = f"db+{PG_URL}"    
+
 
 
 # Static files (CSS, JavaScript, Images)

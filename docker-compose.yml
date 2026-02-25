@@ -9,6 +9,8 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   web:
+    env_file:
+      - .env
     build: .
     ports:
       - "8000:8000"
