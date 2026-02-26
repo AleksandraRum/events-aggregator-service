@@ -146,7 +146,11 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-CELERY_BROKER_URL = f"sqla+{os.getenv('POSTGRES_CONNECTION_STRING')}"
+raw_pg = os.environ["POSTGRES_CONNECTION_STRING"]
+
+PG_URL = raw_pg.replace("postgres://", "postgresql://", 1)
+
+CELERY_BROKER_URL = f"sqla+{PG_URL}"
 # CELERY_RESULT_BACKEND = f"db+{os.environ['POSTGRES_CONNECTION_STRING']}"
 CELERY_RESULT_BACKEND = None
 # db = DATABASES["default"]
