@@ -1,5 +1,4 @@
 from rest_framework.response import Response
-from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from core.serializers import EventListSerializer, EventDetailSerializer
@@ -7,6 +6,7 @@ from core.models import Event
 from core.pagination import ListEventPagination
 from rest_framework import status
 from core.celery_task import sync_events_task
+from core.services.seats import get_seats
 
 class HealthView(APIView):
     def get(self, request):
@@ -36,3 +36,10 @@ class SyncTriggerView(APIView):
     def post(self, request):
         sync_events_task.delay()
         return Response({'status': 'ok'}, status=status.HTTP_200_OK)
+    
+
+
+class SeatsGetView(APIView):
+    def get(self, request, event_id):
+        seats= get_seats(event_id)
+        return Response(seats, status=status.HTTP_200_OK)

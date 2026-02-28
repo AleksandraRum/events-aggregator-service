@@ -32,6 +32,18 @@ class EventsProviderClient:
             )
             response.raise_for_status()
         return response.json()
+    
+    def seats(self, event_id):
+        headers = {"x-api-key": self.api_key}
+        url = f'{self.base_url}/api/events/{event_id}/seats/'
+        response = requests.get(
+            url = url,
+            headers = headers,
+            timeout=60
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data['seats']
 
 
 class EventsPaginator:

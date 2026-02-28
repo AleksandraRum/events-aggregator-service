@@ -72,6 +72,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'src.wsgi.application'
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "events-aggregator-cache",
+    }
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -146,20 +153,18 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-raw_pg = os.environ["POSTGRES_CONNECTION_STRING"]
+# raw_pg = os.environ["POSTGRES_CONNECTION_STRING"]
+# PG_URL = raw_pg.replace("postgres://", "postgresql://", 1)
 
-PG_URL = raw_pg.replace("postgres://", "postgresql://", 1)
+# CELERY_BROKER_URL = f"sqla+{PG_URL}"
+# CELERY_RESULT_BACKEND = None
 
-CELERY_BROKER_URL = f"sqla+{PG_URL}"
-# CELERY_RESULT_BACKEND = f"db+{os.environ['POSTGRES_CONNECTION_STRING']}"
-CELERY_RESULT_BACKEND = None
-# db = DATABASES["default"]
+db = DATABASES["default"]
 
-# PG_URL = f"postgresql://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+PG_URL = f"postgresql://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
 
-# CELERY_BROKER_URL = f"sqla+{PG_URL}"    
-# CELERY_RESULT_BACKEND = f"db+{PG_URL}"    
-
+CELERY_BROKER_URL = f"sqla+{PG_URL}"    
+CELERY_RESULT_BACKEND = f"db+{PG_URL}"    
 
 
 # Static files (CSS, JavaScript, Images)
