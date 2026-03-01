@@ -83,26 +83,28 @@ CACHES = {
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ['POSTGRES_DATABASE_NAME'],
-        'USER': os.environ['POSTGRES_USERNAME'],
-        'PASSWORD': os.environ['POSTGRES_PASSWORD'],
-        'HOST': os.environ['POSTGRES_HOST'],
-        'PORT': os.environ['POSTGRES_PORT'],
-    }
-}
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': os.getenv('POSTGRES_DATABASE_NAME', 'events_db'),
-#         'USER': os.getenv('POSTGRES_USERNAME', 'postgres'),
-#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
-#         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
-#         'PORT': os.getenv('POSTGRES_PORT', '5432'),
+#         'NAME': os.environ['POSTGRES_DATABASE_NAME'],
+#         'USER': os.environ['POSTGRES_USERNAME'],
+#         'PASSWORD': os.environ['POSTGRES_PASSWORD'],
+#         'HOST': os.environ['POSTGRES_HOST'],
+#         'PORT': os.environ['POSTGRES_PORT'],
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('POSTGRES_DATABASE_NAME', 'events_db'),
+        'USER': os.getenv('POSTGRES_USERNAME', 'postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'postgres'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
+    }
+}
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
 REST_FRAMEWORK = {
@@ -153,18 +155,18 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-# raw_pg = os.environ["POSTGRES_CONNECTION_STRING"]
-# PG_URL = raw_pg.replace("postgres://", "postgresql://", 1)
+raw_pg = os.environ["POSTGRES_CONNECTION_STRING"]
+PG_URL = raw_pg.replace("postgres://", "postgresql://", 1)
 
-# CELERY_BROKER_URL = f"sqla+{PG_URL}"
-# CELERY_RESULT_BACKEND = None
+CELERY_BROKER_URL = f"sqla+{PG_URL}"
+CELERY_RESULT_BACKEND = None
 
-db = DATABASES["default"]
+# db = DATABASES["default"]
 
-PG_URL = f"postgresql://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+# PG_URL = f"postgresql://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
 
-CELERY_BROKER_URL = f"sqla+{PG_URL}"    
-CELERY_RESULT_BACKEND = f"db+{PG_URL}"    
+# CELERY_BROKER_URL = f"sqla+{PG_URL}"    
+# CELERY_RESULT_BACKEND = f"db+{PG_URL}"    
 
 
 # Static files (CSS, JavaScript, Images)

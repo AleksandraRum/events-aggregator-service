@@ -4,6 +4,7 @@ from core.models import Event
 from rest_framework.exceptions import NotFound, ValidationError
 from django.core.cache import cache
 
+
 CACH_TTL = 30
 
 def get_seats(event_id) -> dict:

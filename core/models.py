@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 import uuid
 
 
@@ -24,6 +25,21 @@ class Event(models.Model):
     created_at = models.DateTimeField()
     status_changed_at = models.DateTimeField(null=True, blank=True)
 
+
+class Ticket(models.Model):
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='tickets')
+    ticket_id = models.UUIDField(db_index=True)
+    seat = models.CharField(max_length=32)
+    email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    canceled_at = models.DateTimeField(null=True, blank=True)
+
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['event', 'ticket_id'], condition=Q(canceled_at__isnull=True), name='unique_event_ticket'),
+            models.UniqueConstraint(fields=['event', 'seat'], condition=Q(canceled_at__isnull=True), name='unique_event_seat'),
+        ]
 
 
 class SyncState(models.Model):

@@ -22,7 +22,6 @@ class EventsProviderClient:
             url = f'{self.base_url}/api/events/'
             params = {}
             params["changed_at"] = changed_at
-        
 
             response = requests.get(
                 url = url,
@@ -32,6 +31,41 @@ class EventsProviderClient:
             )
             response.raise_for_status()
         return response.json()
+    
+    def register(self, event_id, first_name, last_name, email, seat):
+        headers = {"x-api-key": self.api_key}
+        url = f'{self.base_url}/api/events/{event_id}/register/'
+        payload = {}
+        payload["first_name"] = first_name
+        payload["last_name"] = last_name
+        payload["email"] = email
+        payload["seat"] = seat
+
+        response = requests.post(
+            url = url,
+            headers = headers,
+            json=payload,
+            timeout=60
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data["ticket_id"]
+    
+    def unregister(self, event_id, ticket_id):
+        headers = {"x-api-key": self.api_key}
+        url = f'{self.base_url}/api/events/{event_id}/unregister/'
+        payload = {}
+        payload["ticket_id"] = str(ticket_id)
+        response = requests.delete(
+            url = url,
+            headers = headers,
+            json=payload,
+            timeout=60
+        )
+        response.raise_for_status()
+        data = response.json()
+        return data["success"]
+
     
     def seats(self, event_id):
         headers = {"x-api-key": self.api_key}
