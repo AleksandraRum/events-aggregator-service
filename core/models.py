@@ -53,3 +53,24 @@ class SyncState(models.Model):
     last_changed_at = models.DateTimeField(null=True, blank=True)
     last_sync_time = models.DateTimeField(null=True, blank=True)
     sync_status = models.CharField(choices=StatusChoices.choices, max_length=20, default=StatusChoices.SUCCESS)
+
+
+class NotificationOutbox(models.Model):
+
+    class StatusChoices(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SENT = "sent", "Sent"
+
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    event_type = models.CharField(max_length=50)
+    payload = models.JSONField(default=dict)
+    status = models.CharField(choices=StatusChoices.choices, max_length=20, default=StatusChoices.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+                                   
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["status"]),
+        ]

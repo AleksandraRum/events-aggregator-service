@@ -7,3 +7,5 @@ requests
 celery[sqlalchemy]
 SQLAlchemy
 kombu[sqlalchemy]
+sentry-sdk==2.54.0
+ruff
