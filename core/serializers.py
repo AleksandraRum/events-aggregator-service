@@ -34,3 +34,4 @@ class RegisterSerializer(serializers.Serializer):
     last_name = serializers.CharField(max_length=50, allow_blank=False, trim_whitespace=True)
     email = serializers.EmailField()
     seat = serializers.RegexField(r"^[A-Za-z]\d+$", max_length=32)
+    idempotency_key = serializers.UUIDField(required=False)

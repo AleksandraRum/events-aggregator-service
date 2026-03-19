@@ -74,3 +74,13 @@ class NotificationOutbox(models.Model):
         indexes = [
             models.Index(fields=["status"]),
         ]
+
+class TicketRequestIdempotency(models.Model):
+    idempotency_key = models.UUIDField(unique=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+    ticket_id = models.UUIDField(null=True, blank=True)
+    first_name = models.CharField(max_length=255)
+    last_name = models.CharField(max_length=255)
+    seat = models.CharField(max_length=32)
+    email = models.EmailField()
+    created_at = models.DateTimeField(auto_now_add=True)

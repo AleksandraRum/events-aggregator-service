@@ -55,7 +55,8 @@ class RegisterPostView(APIView):
             first_name=data["first_name"],
             last_name=data["last_name"],
             email=data["email"],
-            seat=data["seat"]
+            seat=data["seat"],
+            idempotency_key = data.get("idempotency_key")
         )
         return Response(
             {"ticket_id": ticket_id},

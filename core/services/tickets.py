@@ -1,15 +1,16 @@
 import os
 import requests
 from core.clients.events_provider import EventsProviderClient
-from core.models import Event, Ticket, NotificationOutbox
+from core.models import Event, Ticket, NotificationOutbox, TicketRequestIdempotency
 from rest_framework.exceptions import NotFound, ValidationError
 from django.utils import timezone
 from core.services.seats import get_seats
 from django.db.utils import IntegrityError
 from django.db import transaction
+from core.exceptions import ConflictError
 
 
-def register_ticket(event_id, first_name, last_name, email, seat):
+def register_ticket(event_id, first_name, last_name, email, seat, idempotency_key=None):
     try:
         event = Event.objects.select_related("place").get(id=event_id)
     except Event.DoesNotExist:
@@ -21,6 +22,23 @@ def register_ticket(event_id, first_name, last_name, email, seat):
     now = timezone.now()
     if now >= event.registration_deadline:
          raise ValidationError("Registration is closed")
+    
+    if idempotency_key:
+        record = TicketRequestIdempotency.objects.filter(idempotency_key=idempotency_key).first()
+        if record:
+            same_request = (
+            record.event_id == event_id and
+            record.first_name == first_name and
+            record.last_name == last_name and
+            record.email == email and
+            record.seat == seat
+            )
+
+            if same_request:
+                return record.ticket_id
+            else:
+                raise ConflictError("Idempotency_key conflict")
+            
     ticket = Ticket.objects.filter(event=event, seat=seat, canceled_at__isnull=True).first()
     if ticket:
         if ticket.email == email:
@@ -32,6 +50,7 @@ def register_ticket(event_id, first_name, last_name, email, seat):
         base_url=os.environ["EVENTS_PROVIDER_BASE_URL"],
         api_key=os.environ["EVENTS_PROVIDER_API_KEY"],
        )
+    
     seats_data = get_seats(event_id)
     available_seats = seats_data["available_seats"]
     if seat not in available_seats:
@@ -61,7 +80,8 @@ def register_ticket(event_id, first_name, last_name, email, seat):
             else:
                 raise ValidationError("Seat is not available")
         NotificationOutbox.objects.create(event_type='ticket_purchased', payload=payload)
-
+        if idempotency_key:
+            TicketRequestIdempotency.objects.create(event=event, ticket_id=ticket_id, seat=seat, email=email, first_name=first_name, last_name=last_name, idempotency_key=idempotency_key)
     return ticket_id
 
 

@@ -15,6 +15,7 @@ from celery.schedules import crontab
 import os
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
+from datetime import timedelta
 
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 
@@ -164,6 +165,10 @@ CELERY_BEAT_SCHEDULE = {
     "sync-events-daily": {
         "task": "core.celery_task.sync_events_task",
         "schedule": crontab(hour=3, minute=0),
+    },
+    "process-outbox-every-5-seconds": {
+        "task": "core.celery_task.process_outbox_all_records",
+        "schedule": timedelta(seconds=5),
     },
 }
 
