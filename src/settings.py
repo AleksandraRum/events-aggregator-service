@@ -166,10 +166,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "core.celery_task.sync_events_task",
         "schedule": crontab(hour=3, minute=0),
     },
-    # "process-outbox-every-5-seconds": {
-    #     "task": "core.celery_task.process_outbox_all_records",
-    #     "schedule": timedelta(seconds=5),
-    # },
+    "process-outbox-every-5-seconds": {
+        "task": "core.celery_task.process_outbox_all_records",
+        "schedule": timedelta(seconds=5),
+    },
 }
 
 raw_pg = os.environ["POSTGRES_CONNECTION_STRING"]
