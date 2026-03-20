@@ -5,38 +5,43 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Place',
+            name="Place",
             fields=[
-                ('id', models.UUIDField(primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=256)),
-                ('city', models.CharField(max_length=256)),
-                ('address', models.CharField(max_length=256)),
-                ('seats_pattern', models.CharField(max_length=256)),
-                ('changed_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(blank=True, null=True)),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=256)),
+                ("city", models.CharField(max_length=256)),
+                ("address", models.CharField(max_length=256)),
+                ("seats_pattern", models.CharField(max_length=256)),
+                ("changed_at", models.DateTimeField(blank=True, null=True)),
+                ("created_at", models.DateTimeField(blank=True, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Event',
+            name="Event",
             fields=[
-                ('id', models.UUIDField(primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=256)),
-                ('event_time', models.DateTimeField()),
-                ('registration_deadline', models.DateTimeField()),
-                ('status', models.CharField(max_length=256)),
-                ('number_of_visitors', models.PositiveIntegerField()),
-                ('changed_at', models.DateTimeField()),
-                ('created_at', models.DateTimeField()),
-                ('status_changed_at', models.DateTimeField(blank=True, null=True)),
-                ('place', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='events', to='core.place')),
+                ("id", models.UUIDField(primary_key=True, serialize=False)),
+                ("name", models.CharField(max_length=256)),
+                ("event_time", models.DateTimeField()),
+                ("registration_deadline", models.DateTimeField()),
+                ("status", models.CharField(max_length=256)),
+                ("number_of_visitors", models.PositiveIntegerField()),
+                ("changed_at", models.DateTimeField()),
+                ("created_at", models.DateTimeField()),
+                ("status_changed_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "place",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="events",
+                        to="core.place",
+                    ),
+                ),
             ],
         ),
     ]

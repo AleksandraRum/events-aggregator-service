@@ -1,13 +1,16 @@
-from celery import shared_task
-from core.services.sync import sync_events
 import logging
-from core.models import NotificationOutbox
-from core.clients.capashino_client import CapashinoClient
 import os
+
 import requests
 from django.utils import timezone
 
+from celery import shared_task
+from core.clients.capashino_client import CapashinoClient
+from core.models import NotificationOutbox
+from core.services.sync import sync_events
+
 logger = logging.getLogger(__name__)
+
 
 @shared_task()
 def sync_events_task():
@@ -16,6 +19,7 @@ def sync_events_task():
     except Exception:
         logger.exception("sync_events_task failed")
         raise
+
 
 def process_outbox_one_record(outbox_record):
     message = outbox_record.payload.get("message")
@@ -27,7 +31,7 @@ def process_outbox_one_record(outbox_record):
     if not reference_id:
         logger.warning(f"Reference_id of {outbox_record.id} is empty")
         return
-    
+
     logger.info(f"Record of {outbox_record.id} validated")
     client = CapashinoClient(
         capashino_base_url=os.environ["CAPASHINO_BASE_URL"],
@@ -49,16 +53,17 @@ def process_outbox_one_record(outbox_record):
     outbox_record.status = NotificationOutbox.StatusChoices.SENT
     outbox_record.sent_at = timezone.now()
     outbox_record.save(update_fields=["status", "sent_at"])
-        
+
     # print("Record of {outbox_record.id} validated")
 
 
 @shared_task()
 def process_outbox_all_records():
-    records = NotificationOutbox.objects.filter(status=NotificationOutbox.StatusChoices.PENDING).order_by("created_at")[:100]
+    records = NotificationOutbox.objects.filter(
+        status=NotificationOutbox.StatusChoices.PENDING
+    ).order_by("created_at")[:100]
     for record in records:
         try:
             process_outbox_one_record(record)
         except Exception:
             logger.exception("process_outbox_one_record failed")
-        

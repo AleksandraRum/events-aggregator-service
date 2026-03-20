@@ -8,17 +8,12 @@ class CapashinoClient:
 
     def send_notification(self, message, reference_id, idempotency_key):
         headers = {"x-api-key": self.api_key}
-        url = f'{self.capashino_base_url}/api/notifications'
+        url = f"{self.capashino_base_url}/api/notifications"
         payload = {}
         payload["message"] = message
         payload["reference_id"] = reference_id
         payload["idempotency_key"] = idempotency_key
 
-        response = requests.post(
-            url = url,
-            headers=headers,
-            json = payload,
-            timeout = 10
-        )
+        response = requests.post(url=url, headers=headers, json=payload, timeout=10)
         response.raise_for_status()
         return response.json()

@@ -5,25 +5,50 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0002_syncstate'),
+        ("core", "0002_syncstate"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Ticket',
+            name="Ticket",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('ticket_id', models.UUIDField(db_index=True)),
-                ('seat', models.CharField(max_length=32)),
-                ('email', models.EmailField(max_length=254)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('canceled_at', models.DateTimeField(blank=True, null=True)),
-                ('event', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tickets', to='core.event')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("ticket_id", models.UUIDField(db_index=True)),
+                ("seat", models.CharField(max_length=32)),
+                ("email", models.EmailField(max_length=254)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("canceled_at", models.DateTimeField(blank=True, null=True)),
+                (
+                    "event",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tickets",
+                        to="core.event",
+                    ),
+                ),
             ],
             options={
-                'constraints': [models.UniqueConstraint(condition=models.Q(('canceled_at__isnull', True)), fields=('event', 'ticket_id'), name='unique_event_ticket'), models.UniqueConstraint(condition=models.Q(('canceled_at__isnull', True)), fields=('event', 'seat'), name='unique_event_seat')],
+                "constraints": [
+                    models.UniqueConstraint(
+                        condition=models.Q(("canceled_at__isnull", True)),
+                        fields=("event", "ticket_id"),
+                        name="unique_event_ticket",
+                    ),
+                    models.UniqueConstraint(
+                        condition=models.Q(("canceled_at__isnull", True)),
+                        fields=("event", "seat"),
+                        name="unique_event_seat",
+                    ),
+                ],
             },
         ),
     ]

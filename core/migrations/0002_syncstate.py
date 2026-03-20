@@ -4,19 +4,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0001_initial'),
+        ("core", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SyncState',
+            name="SyncState",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('last_changed_at', models.DateTimeField(blank=True, null=True)),
-                ('last_sync_time', models.DateTimeField(blank=True, null=True)),
-                ('sync_status', models.CharField(choices=[('failed', 'Failed'), ('success', 'Success'), ('running', 'Running')], default='success', max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("last_changed_at", models.DateTimeField(blank=True, null=True)),
+                ("last_sync_time", models.DateTimeField(blank=True, null=True)),
+                (
+                    "sync_status",
+                    models.CharField(
+                        choices=[
+                            ("failed", "Failed"),
+                            ("success", "Success"),
+                            ("running", "Running"),
+                        ],
+                        default="success",
+                        max_length=20,
+                    ),
+                ),
             ],
         ),
     ]

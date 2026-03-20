@@ -5,24 +5,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0004_notificationoutbox'),
+        ("core", "0004_notificationoutbox"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TicketRequestIdempotency',
+            name="TicketRequestIdempotency",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('idempotency_key', models.UUIDField(unique=True)),
-                ('ticket_id', models.UUIDField(blank=True, null=True)),
-                ('first_name', models.CharField(max_length=255)),
-                ('last_name', models.CharField(max_length=255)),
-                ('seat', models.CharField(max_length=32)),
-                ('email', models.EmailField(max_length=254)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('event', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.event')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("idempotency_key", models.UUIDField(unique=True)),
+                ("ticket_id", models.UUIDField(blank=True, null=True)),
+                ("first_name", models.CharField(max_length=255)),
+                ("last_name", models.CharField(max_length=255)),
+                ("seat", models.CharField(max_length=32)),
+                ("email", models.EmailField(max_length=254)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "event",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.event"
+                    ),
+                ),
             ],
         ),
     ]

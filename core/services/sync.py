@@ -1,12 +1,14 @@
-from django.utils.dateparse import parse_datetime
-from core.models import SyncState, Place, Event
-from django.utils import timezone
-from datetime import timezone as dt_timezone, timedelta
-import os
 import logging
-from core.clients.events_provider import EventsProviderClient, EventsPaginator
+from datetime import timedelta
+from datetime import timezone as dt_timezone
 from uuid import UUID
 
+from django.utils import timezone
+from django.utils.dateparse import parse_datetime
+
+from core.clients.events_provider import EventsPaginator
+from core.clients.factory import get_events_provider_client
+from core.models import Event, Place, SyncState
 
 PROVIDER_TZ = dt_timezone(timedelta(hours=3))
 
@@ -20,6 +22,7 @@ PLACE_UPDATE_FIELDS = [
     "changed_at",
     "created_at",
 ]
+
 
 def bulk_upsert_places_from_events(events):
     places_data = {}
@@ -36,7 +39,7 @@ def bulk_upsert_places_from_events(events):
         except (ValueError, TypeError):
             logger.warning("Invalid place_id=%r, skip place", place.get("id"))
             continue
- 
+
         if place_id:
             places_data[place_id] = place
 
@@ -55,8 +58,12 @@ def bulk_upsert_places_from_events(events):
             "city": place.get("city", ""),
             "address": place.get("address", ""),
             "seats_pattern": place.get("seats_pattern", ""),
-            "changed_at": parse_datetime(place["changed_at"]) if place.get("changed_at") else None,
-            "created_at": parse_datetime(place["created_at"]) if place.get("created_at") else None,
+            "changed_at": parse_datetime(place["changed_at"])
+            if place.get("changed_at")
+            else None,
+            "created_at": parse_datetime(place["created_at"])
+            if place.get("created_at")
+            else None,
         }
 
         if place_id in existing_places:
@@ -90,30 +97,38 @@ def bulk_upsert_places_from_events(events):
     return Place.objects.in_bulk(place_ids)
 
 
-
 def upsert_event(event, place_obj):
     event_id = event["id"]
     default_data_event = {
         "name": event.get("name", ""),
         "place": place_obj,
-        "event_time": parse_datetime(event["event_time"]) if event.get("event_time") else None,
-        "registration_deadline": parse_datetime(event["registration_deadline"]) if event.get("registration_deadline") else None,
+        "event_time": parse_datetime(event["event_time"])
+        if event.get("event_time")
+        else None,
+        "registration_deadline": parse_datetime(event["registration_deadline"])
+        if event.get("registration_deadline")
+        else None,
         "status": event.get("status", ""),
         "number_of_visitors": event.get("number_of_visitors", 0),
-        "changed_at": parse_datetime(event["changed_at"]) if event.get("changed_at") else None,
-        "created_at": parse_datetime(event["created_at"]) if event.get("created_at") else None,
-        "status_changed_at": parse_datetime(event["status_changed_at"]) if event.get("status_changed_at") else None,
+        "changed_at": parse_datetime(event["changed_at"])
+        if event.get("changed_at")
+        else None,
+        "created_at": parse_datetime(event["created_at"])
+        if event.get("created_at")
+        else None,
+        "status_changed_at": parse_datetime(event["status_changed_at"])
+        if event.get("status_changed_at")
+        else None,
     }
 
-    new_event, event_created = Event.objects.update_or_create(
-        id=event_id,
-        defaults=default_data_event
+    new_event, _ = Event.objects.update_or_create(
+        id=event_id, defaults=default_data_event
     )
     return new_event
 
 
 def sync_events():
-    sync_state, created = SyncState.objects.get_or_create(id=1)
+    sync_state, _ = SyncState.objects.get_or_create(id=1)
     last_changed_at = sync_state.last_changed_at
 
     if not last_changed_at:
@@ -122,31 +137,23 @@ def sync_events():
         dt_in_provider_tz = timezone.localtime(last_changed_at, PROVIDER_TZ)
         changed_at = dt_in_provider_tz.date().isoformat()
 
-    client = EventsProviderClient(
-        base_url=os.environ["EVENTS_PROVIDER_BASE_URL"],
-        api_key=os.environ["EVENTS_PROVIDER_API_KEY"],
-    )
+    client = get_events_provider_client()
 
     sync_state.sync_status = SyncState.StatusChoices.RUNNING
     sync_state.save()
 
-    logger.info("sync_events started: changed_at=%s last_changed_at=%s", changed_at, last_changed_at)
+    logger.info(
+        "sync_events started: changed_at=%s last_changed_at=%s",
+        changed_at,
+        last_changed_at,
+    )
 
     processed = 0
     max_changed_at = None
 
     try:
         paginator = EventsPaginator(client, changed_at)
-        while True:
-            results, next_url = paginator.fetch_page(cursor=paginator.cursor)
-
-            paginator.cursor = next_url
-
-            if not results:
-                if not next_url:
-                    break
-                continue
-
+        for results in paginator:
             places_by_id = bulk_upsert_places_from_events(results)
             for event in results:
                 place = event.get("place")
@@ -161,23 +168,32 @@ def sync_events():
                     if not isinstance(place_id, UUID):
                         place_id = UUID(str(place_id))
                 except (ValueError, TypeError):
-                    logger.warning("Invalid place_id=%r in event id=%r, skip", place.get("id"), event.get("id"))
+                    logger.warning(
+                        "Invalid place_id=%r in event id=%r, skip",
+                        place.get("id"),
+                        event.get("id"),
+                    )
                     continue
                 place_obj = places_by_id.get(place_id)
                 if not place_obj:
-                    logger.warning("Place not found after bulk upsert: place_id=%r event_id=%r, skip", place_id, event.get("id"))
+                    logger.warning(
+                        "Place not found after bulk upsert: place_id=%r event_id=%r, skip",
+                        place_id,
+                        event.get("id"),
+                    )
                     continue
 
                 upsert_event(event, place_obj)
                 processed += 1
 
-                event_changed_at = parse_datetime(event["changed_at"]) if event.get("changed_at") else None
+                event_changed_at = (
+                    parse_datetime(event["changed_at"])
+                    if event.get("changed_at")
+                    else None
+                )
                 if event_changed_at is not None:
                     if max_changed_at is None or event_changed_at > max_changed_at:
                         max_changed_at = event_changed_at
-
-            if not next_url:
-                break
 
         if max_changed_at:
             sync_state.last_changed_at = max_changed_at
