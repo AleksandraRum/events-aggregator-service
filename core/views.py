@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from prometheus_client import REGISTRY, generate_latest
+from django.http import HttpResponse
 
 from core.celery_task import sync_events_task
 from core.models import Event
@@ -13,6 +15,7 @@ from core.serializers import (
 )
 from core.services.seats import get_seats
 from core.services.tickets import register_ticket, unregister_ticket
+from core.metrics import events_total
 
 
 class HealthView(APIView):
@@ -71,3 +74,13 @@ class RegisterDeleteView(APIView):
     def delete(self, request, ticket_id):
         res = unregister_ticket(ticket_id)
         return Response(res, status=status.HTTP_200_OK)
+
+
+class MetricsView(APIView):
+    def get(self, request):
+        number_of_events = Event.objects.count()
+        events_total.set(number_of_events)
+        metrics_data = generate_latest(REGISTRY)
+        return HttpResponse(
+            metrics_data, content_type="text/plain; version=0.0.4; charset=utf-8"
+        )

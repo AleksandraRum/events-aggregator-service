@@ -65,6 +65,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "core.middleware.MetricsMiddleware",
 ]
 
 ROOT_URLCONF = "src.urls"
@@ -173,20 +174,20 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-raw_pg = os.environ["POSTGRES_CONNECTION_STRING"]
-PG_URL = raw_pg.replace("postgres://", "postgresql://", 1)
-
-CELERY_BROKER_URL = f"sqla+{PG_URL}"
-CELERY_RESULT_BACKEND = None
-
-# db = DATABASES["default"]
-
-# PG_URL = (
-#     f"postgresql://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
-# )
+# raw_pg = os.environ["POSTGRES_CONNECTION_STRING"]
+# PG_URL = raw_pg.replace("postgres://", "postgresql://", 1)
 
 # CELERY_BROKER_URL = f"sqla+{PG_URL}"
-# CELERY_RESULT_BACKEND = f"db+{PG_URL}"
+# CELERY_RESULT_BACKEND = None
+
+db = DATABASES["default"]
+
+PG_URL = (
+    f"postgresql://{db['USER']}:{db['PASSWORD']}@{db['HOST']}:{db['PORT']}/{db['NAME']}"
+)
+
+CELERY_BROKER_URL = f"sqla+{PG_URL}"
+CELERY_RESULT_BACKEND = f"db+{PG_URL}"
 
 
 # Static files (CSS, JavaScript, Images)

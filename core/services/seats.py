@@ -3,6 +3,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 
 from core.clients.factory import get_events_provider_client
 from core.models import Event
+from core.metrics import cache_hits_total, cache_misses_total
 
 CACH_TTL = 30
 
@@ -21,7 +22,9 @@ def get_seats(event_id) -> dict:
     cached_event = cache.get(cache_key)
 
     if cached_event is not None:
+        cache_hits_total.inc()
         return {"event_id": event_id, "available_seats": cached_event}
+    cache_misses_total.inc()
     client = get_events_provider_client()
     seats = client.seats(event_id)
     cache.set(cache_key, seats, timeout=CACH_TTL)

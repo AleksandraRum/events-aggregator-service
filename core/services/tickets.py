@@ -1,16 +1,14 @@
-import os
-
 import requests
 from django.db import transaction
 from django.db.utils import IntegrityError
 from django.utils import timezone
 from rest_framework.exceptions import NotFound, ValidationError
 
-from core.clients.events_provider import EventsProviderClient
 from core.clients.factory import get_events_provider_client
 from core.exceptions import ConflictError
 from core.models import Event, NotificationOutbox, Ticket, TicketRequestIdempotency
 from core.services.seats import get_seats
+from core.metrics import tickets_created_total, tickets_cancelled_total
 
 
 def register_ticket(event_id, first_name, last_name, email, seat, idempotency_key=None):
@@ -101,6 +99,7 @@ def register_ticket(event_id, first_name, last_name, email, seat, idempotency_ke
                 last_name=last_name,
                 idempotency_key=idempotency_key,
             )
+    tickets_created_total.inc()
     return ticket_id
 
 
@@ -118,10 +117,7 @@ def unregister_ticket(ticket_id):
         else:
             raise NotFound("Ticket not found")
     event = ticket.event
-    client = EventsProviderClient(
-        base_url=os.environ["EVENTS_PROVIDER_BASE_URL"],
-        api_key=os.environ["EVENTS_PROVIDER_API_KEY"],
-    )
+    client = get_events_provider_client()
     try:
         client.unregister(event.id, ticket.ticket_id)
     except requests.exceptions.HTTPError as e:
@@ -134,5 +130,5 @@ def unregister_ticket(ticket_id):
         raise ValidationError("Unregistration failed")
     ticket.canceled_at = timezone.now()
     ticket.save(update_fields=["canceled_at"])
-
+    tickets_cancelled_total.inc()
     return {"success": True}
